@@ -6,16 +6,19 @@ async def main():
     """
     The main asynchronous entry point for the agent CLI.
     """
-    print("\n🧠 Agent Orchestrator CLI (Async Version)")
+    print("\n🧠 Agent Orchestrator CLI (With Memory)")
     print("-----------------------------------------")
 
     while True:
         print("\nAvailable commands:")
-        print("  plan <task>   → Generate spec/blueprint for the task.")
-        print("  code <plan>   → Implement functions from the plan.")
-        print("  test <desc>   → Generate and run unit tests.")
-        print("  review <file> → Audit a specific file.")
-        print("  quit          → Exit the CLI.\n")
+        print("  plan <task>                   → Generate spec for the task (uses memory).")
+        print("  code <plan>                   → Implement functions from the plan.")
+        print("  test <desc>                   → Run interactive tests via ForeverVM.")
+        print("  review <file>                 → Audit a specific file.")
+        print("  memory store entity:<name> observation:<obs1,obs2>")
+        print("                                → Store information in the knowledge graph.")
+        print("  memory recall <query>         → Recall information from the knowledge graph.")
+        print("  quit                          → Exit the CLI.\n")
 
         user_input = input("Enter command and arguments: ").strip()
         
@@ -29,7 +32,7 @@ async def main():
         if cmd in {"quit", "exit"}:
             print("Exiting...")
             break
-        elif cmd in {"plan", "code", "test", "review"}:
+        elif cmd in {"plan", "code", "test", "review", "memory"}:
             # Await the result from our async router
             result = await route_task(cmd, task)
             print(f"\n{result}\n")
@@ -37,7 +40,6 @@ async def main():
             print(f"❌ Invalid command: '{cmd}'")
 
 if __name__ == "__main__":
-    # This is the correct way to run the top-level async main function
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

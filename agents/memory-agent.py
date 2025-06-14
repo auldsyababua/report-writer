@@ -19,7 +19,7 @@ async def handle_memory_store(entity_name: str, observations: list[str]) -> str:
             
             # First, try to add observations. If the entity doesn't exist, this fails.
             try:
-                await client.request(
+                response = await client.request(
                     MCP_MEMORY_URL,
                     "add_observations",
                     {"observations": [{"entityName": entity_name, "contents": observations}]}
