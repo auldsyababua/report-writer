@@ -1,26 +1,44 @@
+# main.py
+import asyncio
 from agents.router_agent import route_task
 
-def main():
-    print("\n🧠 report-writer agent CLI")
-    print("--------------------------")
+async def main():
+    """
+    The main asynchronous entry point for the agent CLI.
+    """
+    print("\n🧠 Agent Orchestrator CLI (Async Version)")
+    print("-----------------------------------------")
 
     while True:
         print("\nAvailable commands:")
-        print("  plan   → generate spec/blueprint")
-        print("  code   → implement pipeline functions")
-        print("  test   → generate unit tests from plan")
-        print("  review → audit test logic")
-        print("  quit   → exit\n")
+        print("  plan <task>   → Generate spec/blueprint for the task.")
+        print("  code <plan>   → Implement functions from the plan.")
+        print("  test <desc>   → Generate and run unit tests.")
+        print("  review <file> → Audit a specific file.")
+        print("  quit          → Exit the CLI.\n")
 
-        cmd = input("Enter command: ").strip().lower()
+        user_input = input("Enter command and arguments: ").strip()
+        
+        if not user_input:
+            continue
+            
+        parts = user_input.split(' ', 1)
+        cmd = parts[0].lower()
+        task = parts[1] if len(parts) > 1 else ""
 
         if cmd in {"quit", "exit"}:
+            print("Exiting...")
             break
         elif cmd in {"plan", "code", "test", "review"}:
-            result = route_task(cmd)
+            # Await the result from our async router
+            result = await route_task(cmd, task)
             print(f"\n{result}\n")
         else:
-            print("❌ Invalid command")
+            print(f"❌ Invalid command: '{cmd}'")
 
 if __name__ == "__main__":
-    main()
+    # This is the correct way to run the top-level async main function
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nCLI interrupted by user. Exiting.")

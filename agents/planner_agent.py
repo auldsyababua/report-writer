@@ -1,33 +1,39 @@
-def handle_plan(task: str) -> str:
-    plan = {
-        "task": task,
-        "modules": [
-            {
-                "name": "fetch_metrics",
-                "description": "Collects key data points needed for the report (revenue, uptime, etc).",
-                "inputs": [],
-                "outputs": ["dict of metrics"]
-            },
-            {
-                "name": "render_report",
-                "description": "Loads a text template and fills in metric values.",
-                "inputs": ["template_name", "metrics dict"],
-                "outputs": ["report string"]
-            },
-            {
-                "name": "send_report",
-                "description": "Sends the report via Telegram using chat_id and bot_token.",
-                "inputs": ["chat_id", "message_text", "bot_token"],
-                "outputs": ["status code"]
-            }
-        ],
-        "edge_cases": [
-            "Missing or invalid template name",
-            "Empty metrics dict",
-            "Telegram API failure or invalid token"
-        ]
-    }
+# agents/planner_agent.py
+import asyncio
+import json
+from mcp import Client, aiohttp
 
-    return f"✅ PLAN CREATED:\n\n{task}\n\nModules:\n" + "\n".join(
-        [f"- {m['name']}: {m['description']}" for m in plan["modules"]]
-    ) + "\n\nEdge Cases:\n" + "\n".join(f"- {e}" for e in plan["edge_cases"])
+# Using a known public MCP server for sequential thinking
+MCP_SEQ_THINKING_URL = "https://glama.ai/mcp/servers/@arben-adm/mcp-sequential-thinking"
+
+async def handle_plan(task: str) -> str:
+    """
+    Generates a plan for a given task by calling an MCP server.
+
+    This function is asynchronous because it performs a network request.
+    """
+    print("🤖 Planner Agent: Contacting MCP server to generate a plan...")
+    try:
+        # The 'mcp' library uses aiohttp for async HTTP requests
+        async with aiohttp.ClientSession() as session:
+            client = Client(session)
+            
+            # This makes the actual network call to the server
+            response = await client.request(
+                MCP_SEQ_THINKING_URL,
+                "process_thought",  # The specific tool to use on the server
+                {
+                    "thought": f"Break down the following user request into a detailed, step-by-step technical plan: {task}",
+                    "thought_number": 1,
+                    "total_thoughts": 1,
+                    "next_thought_needed": False,
+                    "stage": "Problem Definition"
+                }
+            )
+            
+            # The server's response is JSON, which we format for readability
+            plan_data = json.loads(response)
+            return f"✅ PLAN CREATED VIA MCP:\n\n{json.dumps(plan_data, indent=2)}"
+
+    except Exception as e:
+        return f"❌ PLANNER FAILED: Could not connect to the MCP server. Please check the URL and your network connection. Error: {e}"
